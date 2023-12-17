@@ -2,6 +2,7 @@
 #define SPONGE_LIBSPONGE_BYTE_STREAM_HH
 
 #include <string>
+#include <string_view>
 
 //! \brief An in-order byte stream.
 
@@ -16,9 +17,14 @@ class ByteStream {
     // all, but if any of your tests are taking longer than a second,
     // that's a sign that you probably want to keep exploring
     // different approaches.
-
-    bool _error{};  //!< Flag indicating that the stream suffered an error.
-
+    size_t _capacity;          // 已写入但未接收的最大空间
+    size_t _write_cur_num;     // 当前已写入但未接收的数目 还允许写入的数目=_capacity-_write_cur_num
+    size_t _bytes_written;     // 已经总写入的个数
+    size_t _bytes_read;        // 已经读到总个数
+    bool _write_end;           // 写段结束的标志
+    bool _read_end;            // 读端结束的标志
+    bool _error{};             //!< Flag indicating that the stream suffered an error.
+    std::string _buffer = {};  // 字节流的缓存空间
   public:
     //! Construct a stream with room for `capacity` bytes.
     ByteStream(const size_t capacity);

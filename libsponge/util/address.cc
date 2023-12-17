@@ -8,7 +8,7 @@
 #include <netdb.h>
 #include <stdexcept>
 #include <system_error>
-
+#include <array>
 using namespace std;
 
 //! Converts Raw to `sockaddr *`.
