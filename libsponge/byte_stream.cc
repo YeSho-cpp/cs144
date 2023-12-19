@@ -84,3 +84,5 @@ size_t ByteStream::bytes_written() const { return _bytes_written; }
 size_t ByteStream::bytes_read() const { return _bytes_read; }
 
 size_t ByteStream::remaining_capacity() const { return _capacity - _write_cur_num; }
+
+

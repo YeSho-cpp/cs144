@@ -3,8 +3,10 @@
 
 #include "byte_stream.hh"
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 
 //! \brief A class that assembles a series of excerpts from a byte stream (possibly out of order,
 //! possibly overlapping) into an in-order byte stream.
@@ -12,9 +14,11 @@ class StreamReassembler {
   private:
     // Your code here -- add private members as necessary.
 
-    ByteStream _output;  //!< The reassembled in-order byte stream
-    size_t _capacity;    //!< The maximum number of bytes
-
+    ByteStream _output;                                      //!< The reassembled in-order byte stream
+    size_t _capacity;                                        //!< The maximum number of bytes
+    size_t _unassembled_bytes;                               // 保存未被接收的字节数目
+    std::unordered_map<size_t, char> _unassembled_map = {};  // 保存未被重组的字节流
+    bool has_eof;                                            // 验证未被重组的区域是否有eof的数据
   public:
     //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.
     //! \note This capacity limits both the bytes that have been reassembled,
@@ -46,6 +50,12 @@ class StreamReassembler {
     //! \brief Is the internal state empty (other than the output stream)?
     //! \returns `true` if no substrings are waiting to be assembled
     bool empty() const;
+
+    uint64_t get_first_unread(); // 得到第一个没被读到的index
+
+    uint64_t get_first_unassemble(); // 得到第一个没被重组到的index
+
+    uint64_t get_first_unacceptable(); // 得到第一个没被接收到的index
 };
 
 #endif  // SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH

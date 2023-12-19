@@ -1,6 +1,7 @@
 #ifndef SPONGE_LIBSPONGE_BYTE_STREAM_HH
 #define SPONGE_LIBSPONGE_BYTE_STREAM_HH
 
+#include <cstddef>
 #include <string>
 #include <string_view>
 
@@ -86,6 +87,8 @@ class ByteStream {
     //! Total number of bytes popped
     size_t bytes_read() const;
     //!@}
+
+    
 };
 
 #endif  // SPONGE_LIBSPONGE_BYTE_STREAM_HH
