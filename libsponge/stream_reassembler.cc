@@ -81,8 +81,8 @@ size_t StreamReassembler::unassembled_bytes() const { return _unassembled_bytes;
 
 bool StreamReassembler::empty() const { return _unassembled_bytes == 0; }
 
-uint64_t StreamReassembler::get_first_unread() { return _output.bytes_read(); }
+uint64_t StreamReassembler::get_first_unread() const { return _output.bytes_read(); }
 
-uint64_t StreamReassembler::get_first_unassemble() { return _output.bytes_written(); }
+uint64_t StreamReassembler::get_first_unassemble() const { return _output.bytes_written(); }
 
-uint64_t StreamReassembler::get_first_unacceptable() { return _output.bytes_written() + _output.remaining_capacity(); }
+uint64_t StreamReassembler::get_first_unacceptable() const { return _output.bytes_written() + _output.remaining_capacity(); }

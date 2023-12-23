@@ -51,11 +51,11 @@ class StreamReassembler {
     //! \returns `true` if no substrings are waiting to be assembled
     bool empty() const;
 
-    uint64_t get_first_unread(); // 得到第一个没被读到的index
+    uint64_t get_first_unread() const; // 得到第一个没被读到的index
 
-    uint64_t get_first_unassemble(); // 得到第一个没被重组到的index
+    uint64_t get_first_unassemble() const; // 得到第一个没被重组到的index
 
-    uint64_t get_first_unacceptable(); // 得到第一个没被接收到的index
+    uint64_t get_first_unacceptable() const; // 得到第一个没被接收到的index
 };
 
 #endif  // SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH
