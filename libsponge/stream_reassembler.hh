@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 
 //! \brief A class that assembles a series of excerpts from a byte stream (possibly out of order,
@@ -56,6 +57,8 @@ class StreamReassembler {
     uint64_t get_first_unassemble() const; // 得到第一个没被重组到的index
 
     uint64_t get_first_unacceptable() const; // 得到第一个没被接收到的index
+
+    std::tuple<std::string,size_t,size_t,bool,bool> handledata(std::string data,size_t index); // 处理数据
 };
 
 #endif  // SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <tuple>
 #include <unordered_map>
 
 // Dummy implementation of a stream reassembler.
@@ -14,25 +15,15 @@
 using namespace std;
 
 StreamReassembler::StreamReassembler(const size_t capacity)
-    : _output(capacity), _capacity(capacity), _unassembled_bytes(0), has_eof(false){}
+    : _output(capacity), _capacity(capacity), _unassembled_bytes(0), has_eof(false) {}
 
 //! \details This function accepts a substring (aka a segment) of bytes,
 //! possibly out-of-order, from the logical stream, and assembles any newly
 //! contiguous substrings and writes them into the output stream in order.
 void StreamReassembler::push_substring(const string &data, const size_t index, const bool eof) {
-    auto l = get_first_unassemble(), r = get_first_unacceptable() - 1;  // 重组的范围，不在这个范围的都无效
-    auto first_index = min(r, max(l, index));
-    auto last_index = max(first_index, min(r, index + data.length() - 1));
-    if (index > last_index || ((index + data.length() - 1) < first_index && data.length() != 0))
-        return;  // 对于不在范围内的直接跳过
-    string remain_data =
-        data.length() == 0
-            ? ""
-            : data.substr(first_index - index, last_index - first_index + 1);  //! 注意data.length()配合eof的特殊情况
-
-    if (eof && last_index == index + data.length() - 1) {  // 有eof且末端截断过，eof就算失效了
-        has_eof = true;
-    }
+    auto [remain_data, first_index, last_index, is_return, is_rcut] = handledata(data, index);
+    if (is_return) return;
+    if (eof && !is_rcut) has_eof = true;  // 有eof且末端截断过，eof就算失效了
 
     if (first_index == get_first_unassemble()) {  // 当连接上了
 
@@ -85,4 +76,26 @@ uint64_t StreamReassembler::get_first_unread() const { return _output.bytes_read
 
 uint64_t StreamReassembler::get_first_unassemble() const { return _output.bytes_written(); }
 
-uint64_t StreamReassembler::get_first_unacceptable() const { return _output.bytes_written() + _output.remaining_capacity(); }
+uint64_t StreamReassembler::get_first_unacceptable() const {
+    return _output.bytes_written() + _output.remaining_capacity();
+}
+
+std::tuple<std::string, size_t, size_t, bool, bool> StreamReassembler::handledata(std::string data, size_t index) {
+    auto lb = get_first_unassemble(), rb = get_first_unacceptable() - 1;  // 重组的范围，不在这个范围的都无效
+    // 计算这个数据的范围
+    auto orgin_l = index;
+    auto orgin_r = (data.length()) ? (index + data.length() - 1) : index;
+
+    // 处理一些特殊的情况
+    if (orgin_r < lb || orgin_l > rb)
+        return make_tuple("", 0, 0, true, true);
+    if (data.length() == 0)
+        return make_tuple("", index, index, false, false);
+
+    // 开始裁剪
+    auto l_index = max(lb, orgin_l);
+    auto r_index = min(rb, orgin_r);
+    auto remain_data = data.substr(l_index - index, r_index - l_index + 1);
+    auto last_index = remain_data.length() ? l_index + remain_data.length() - 1 : l_index;
+    return make_tuple(remain_data, l_index, last_index, false, r_index < orgin_r);
+}

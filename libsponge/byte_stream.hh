@@ -23,7 +23,6 @@ class ByteStream {
     size_t _bytes_written;     // 已经总写入的个数
     size_t _bytes_read;        // 已经读到总个数
     bool _write_end;           // 写段结束的标志
-    bool _read_end;            // 读端结束的标志
     bool _error{};             //!< Flag indicating that the stream suffered an error.
     std::string _buffer = {};  // 字节流的缓存空间
   public:

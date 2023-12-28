@@ -6,8 +6,45 @@
 #include "tcp_segment.hh"
 #include "wrapping_integers.hh"
 
+#include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <queue>
+#include <map>
+
+
+// 重传计时器
+//todo 可以在某个时间点启动，一旦RTO的时间流过，就会过期
+//todo 时间的流逝通过tick方法获得
+class Timer{
+
+private:
+  bool running; // 检测是否运行
+  size_t time_elapsed; // 计时器
+  unsigned int retrans_num; // 重传的次数  次数过多会触发abort方法
+  unsigned int _current_rto; // 当前RTO的值
+public:
+  Timer(bool is_run,const uint16_t retx_timeout);
+  
+  bool get_running() const;
+  unsigned int get_retrans_num() const;
+
+  size_t get_time_elapsed() const;
+
+  void begin_timer();
+
+  void stop_timer();
+  
+  bool is_timeout() const;
+
+  void slow_start();
+
+  void plus_time_elapsed(const size_t &time_last);
+
+  void reset_time();
+  void reset(const uint16_t retx_timeout);
+};
+
 
 //! \brief The "sender" part of a TCP implementation.
 
@@ -23,14 +60,23 @@ class TCPSender {
     //! outbound queue of segments that the TCPSender wants sent
     std::queue<TCPSegment> _segments_out{};
 
+    std::map<uint64_t,TCPSegment> _cache{}; //已发送seg的副本，用于记录 “outstanding” seg
+
     //! retransmission timer for the connection
-    unsigned int _initial_retransmission_timeout;
+    unsigned int _initial_retransmission_timeout; // RTO最初的值 
+
+
+    uint16_t _window_size; // 接收方当前窗口大小
+
+    WrappingInt32 _ackno; // 接收方当前的ackno
 
     //! outgoing stream of bytes that have not yet been sent
     ByteStream _stream;
 
     //! the (absolute) sequence number for the next byte to be sent
     uint64_t _next_seqno{0};
+
+    Timer _timer;
 
   public:
     //! Initialize a TCPSender
@@ -48,6 +94,7 @@ class TCPSender {
     //!@{
 
     //! \brief A new acknowledgment was received
+      // 1. 收到ackno ，resent RTO
     void ack_received(const WrappingInt32 ackno, const uint16_t window_size);
 
     //! \brief Generate an empty-payload segment (useful for creating empty ACK segments)
@@ -87,6 +134,17 @@ class TCPSender {
     //! \brief relative seqno for the next byte to be sent
     WrappingInt32 next_seqno() const { return wrap(_next_seqno, _isn); }
     //!@}
+
+
+    void send_segment(TCPSegment& seg);
+
+    void retrans_minseqno();
+
+    //? 需要一个abort即中止方法，在重传次数过多，不确定这个中止方法要做的事情
+    void abort(){
+      // 连接无望需要中止
+    }
 };
+
 
 #endif  // SPONGE_LIBSPONGE_TCP_SENDER_HH
