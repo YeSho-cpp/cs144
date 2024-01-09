@@ -8,6 +8,7 @@
 #include <string>
 #include <tuple>
 #include <unordered_map>
+#include <vector>
 
 //! \brief A class that assembles a series of excerpts from a byte stream (possibly out of order,
 //! possibly overlapping) into an in-order byte stream.
@@ -18,8 +19,10 @@ class StreamReassembler {
     ByteStream _output;                                      //!< The reassembled in-order byte stream
     size_t _capacity;                                        //!< The maximum number of bytes
     size_t _unassembled_bytes;                               // 保存未被接收的字节数目
-    std::unordered_map<size_t, char> _unassembled_map = {};  // 保存未被重组的字节流
-    bool has_eof;                                            // 验证未被重组的区域是否有eof的数据
+    std::vector<bool> _sign={};                                 // 标记是否来过
+    // std::unordered_map<size_t, char> _unassembled_map = {};  // 保存未被重组的字节流
+    std::string _cache={}; // 保存未被重组的字节流
+    size_t end_p;   // 标记EOF位
   public:
     //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.
     //! \note This capacity limits both the bytes that have been reassembled,

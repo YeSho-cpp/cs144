@@ -31,6 +31,7 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
         size_t index = unwrap(seqno, _isn.value(), _reassembler.get_first_unassemble());
 
         if (!seg.header().syn && index == 0) return;  //处理无效的字节流index
+        
 
         index = (index == 0) ? index : index - 1;
         _reassembler.push_substring(data, index, seg.header().fin);

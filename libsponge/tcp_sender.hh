@@ -68,7 +68,7 @@ class TCPSender {
 
     uint16_t _window_size; // 接收方当前窗口大小
 
-    WrappingInt32 _ackno; // 接收方当前的ackno
+    uint64_t _ackno; // 接收方当前的ackno
 
     //! outgoing stream of bytes that have not yet been sent
     ByteStream _stream;
@@ -99,6 +99,8 @@ class TCPSender {
 
     //! \brief Generate an empty-payload segment (useful for creating empty ACK segments)
     void send_empty_segment();
+    // 发送重置段
+    void send_reset_segment();
 
     //! \brief create and send segments to fill as much of the window as possible
     void fill_window();
@@ -140,10 +142,11 @@ class TCPSender {
 
     void retrans_minseqno();
 
-    //? 需要一个abort即中止方法，在重传次数过多，不确定这个中止方法要做的事情
-    void abort(){
-      // 连接无望需要中止
-    }
+    Timer get_timer()const;
+
+    bool fin_acked() const; // 是否发送fin已经确认
+
+    unsigned int get_timeout() const;
 };
 
 

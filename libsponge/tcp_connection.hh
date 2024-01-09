@@ -5,6 +5,7 @@
 #include "tcp_receiver.hh"
 #include "tcp_sender.hh"
 #include "tcp_state.hh"
+#include <cstddef>
 
 //! \brief A complete endpoint of a TCP connection
 class TCPConnection {
@@ -14,29 +15,32 @@ class TCPConnection {
     TCPSender _sender{_cfg.send_capacity, _cfg.rt_timeout, _cfg.fixed_isn};
 
     //! outbound queue of segments that the TCPConnection wants sent
-    std::queue<TCPSegment> _segments_out{};
+    std::queue<TCPSegment> _segments_out{}; // 推到这里面就代表发送了
 
     //! Should the TCPConnection stay active (and keep ACKing)
     //! for 10 * _cfg.rt_timeout milliseconds after both streams have ended,
     //! in case the remote TCPConnection doesn't know we've received its whole stream?
-    bool _linger_after_streams_finish{true};
+    bool _linger_after_streams_finish{true}; // 确定关闭的是是否需要停留（lingering）
+    // todo 被动关闭，这个变量以及closed状态要设置成false
+    size_t _last_segment_time_elapsed={0};
+    bool _active{true};
 
   public:
     //! \name "Input" interface for the writer
     //!@{
 
     //! \brief Initiate a connection by sending a SYN segment
-    void connect();
+    void connect(); //todo 1
 
     //! \brief Write data to the outbound byte stream, and send it over TCP if possible
     //! \returns the number of bytes from `data` that were actually written.
-    size_t write(const std::string &data);
+    size_t write(const std::string &data); //todo 2
 
     //! \returns the number of `bytes` that can be written right now.
     size_t remaining_outbound_capacity() const;
 
     //! \brief Shut down the outbound byte stream (still allows reading incoming data)
-    void end_input_stream();
+    void end_input_stream(); //todo 3
     //!@}
 
     //! \name "Output" interface for the reader
@@ -55,6 +59,7 @@ class TCPConnection {
     size_t unassembled_bytes() const;
     //! \brief Number of milliseconds since the last segment was received
     size_t time_since_last_segment_received() const;
+
     //!< \brief summarize the state of the sender, receiver, and the connection
     TCPState state() const { return {_sender, _receiver, active(), _linger_after_streams_finish}; };
     //!@}
@@ -94,6 +99,14 @@ class TCPConnection {
     TCPConnection(const TCPConnection &other) = delete;
     TCPConnection &operator=(const TCPConnection &other) = delete;
     //!@}
+
+    void push_out();
+    void push_rst();
+
+    bool Prereq() const; // 先决条件1，2，3
 };
+
+
+
 
 #endif  // SPONGE_LIBSPONGE_TCP_FACTORED_HH
