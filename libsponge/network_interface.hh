@@ -7,6 +7,7 @@
 
 #include <optional>
 #include <queue>
+#include <unordered_map>
 
 //! \brief A "network interface" that connects IP (the internet layer, or network layer)
 //! with Ethernet (the network access layer, or link layer).
@@ -29,6 +30,15 @@
 //! the network interface passes it up the stack. If it's an ARP
 //! request or reply, the network interface processes the frame
 //! and learns or replies as necessary.
+
+struct MAC_TTL
+{
+  EthernetAddress mac_addr={};
+  std::optional<InternetDatagram> dgram={};
+  size_t ttl=0; // 时间
+};
+
+
 class NetworkInterface {
   private:
     //! Ethernet (known as hardware, network-access-layer, or link-layer) address of the interface
@@ -39,6 +49,14 @@ class NetworkInterface {
 
     //! outbound queue of Ethernet frames that the NetworkInterface wants sent
     std::queue<EthernetFrame> _frames_out{};
+
+    std::unordered_map<uint32_t,MAC_TTL>_cache{}; //缓存用来做ip-mac地址的映射
+
+    std::unordered_map<uint32_t,MAC_TTL>_arp_queue{}; // arp请求的队列
+
+    size_t _FLOOD_TIME=5000; // 洪泛时间
+
+    size_t _CACHE_TIME=30000; // 缓存时间
 
   public:
     //! \brief Construct a network interface with given Ethernet (network-access-layer) and IP (internet-layer) addresses
@@ -62,6 +80,10 @@ class NetworkInterface {
 
     //! \brief Called periodically when time elapses
     void tick(const size_t ms_since_last_tick);
+
+
+    EthernetFrame warp_Ethernet(uint16_t type,EthernetAddress src,EthernetAddress dst,uint32_t s_ip,uint32_t d_ip,std::optional<InternetDatagram>dgram,uint16_t arp_type); // 包装以太网地址
+
 };
 
 #endif  // SPONGE_LIBSPONGE_NETWORK_INTERFACE_HH
