@@ -91,8 +91,9 @@ void TCPSender::fill_window() {
 void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_size) {
     //! 要忽略哪些无效的ackno
     uint64_t abs_ackno=unwrap(ackno, _isn, _next_seqno);
-    if (_next_seqno < abs_ackno || abs_ackno < _ackno) return;
-
+    if (abs_ackno < _ackno || abs_ackno > _next_seqno) {
+        return;
+    }
     _ackno = abs_ackno, _window_size = window_size;  // 追踪最新的ackno和window_size
 
     // 查看outstanding segments的数据结构，移除已经被确认的，其实就是ackno一下数字的
@@ -110,9 +111,9 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
         if (!_cache.empty())
             _timer.begin_timer();  // 有任何未完成的数据，重新启动重传计时器
     }
-    if (_window_size > 0) {
-        fill_window();
-    }
+   
+    fill_window();
+
 }
 
 //! \param[in] ms_since_last_tick the number of milliseconds since the last call to this method

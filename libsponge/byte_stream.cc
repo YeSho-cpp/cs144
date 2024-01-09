@@ -26,11 +26,7 @@ size_t ByteStream::write(const string &data) {
     }
     size_t len = data.length();
     len = min(remaining_capacity(), len);
-    _buffer.resize(_write_cur_num + len);
-    for (size_t i = 0; i < len; i++) {
-        _buffer[_write_cur_num + i] = data[i];
-    }
-    // 这里要加_write_cur_num
+    _buffer+=std::move(data.substr(0,len));
     _write_cur_num += len;
     // 加_bytes_written
     _bytes_written += len;

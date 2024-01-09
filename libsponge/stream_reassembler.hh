@@ -19,8 +19,7 @@ class StreamReassembler {
     ByteStream _output;                                      //!< The reassembled in-order byte stream
     size_t _capacity;                                        //!< The maximum number of bytes
     size_t _unassembled_bytes;                               // 保存未被接收的字节数目
-    std::vector<bool> _sign={};                                 // 标记是否来过
-    // std::unordered_map<size_t, char> _unassembled_map = {};  // 保存未被重组的字节流
+    std::string _sign;                                 // 标记是否来过
     std::string _cache={}; // 保存未被重组的字节流
     size_t end_p;   // 标记EOF位
   public:

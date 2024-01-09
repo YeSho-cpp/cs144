@@ -76,9 +76,6 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
         _active=false;
     }
 
-    // if (!_sender.stream_in().eof() && bytes_in_flight() == 0 && !_linger_after_streams_finish) {
-    //     _active = false;
-    // }
 
     push_out();
 }
@@ -112,7 +109,7 @@ void TCPConnection::tick(const size_t ms_since_last_tick) {
     }
 
     if (Prereq()) {  // todo 判断条件干净的结束
-        if (time_since_last_segment_received() >= 10 * _cfg.rt_timeout) {
+        if (time_since_last_segment_received() >= 10 * _sender.get_timeout()) {
             _active = false;
             _linger_after_streams_finish = false;
         }
