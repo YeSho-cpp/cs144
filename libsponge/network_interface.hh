@@ -58,6 +58,8 @@ class NetworkInterface {
 
     size_t _CACHE_TIME=30000; // 缓存时间
 
+    EthernetAddress BROADCAST_ARP = {0x00, 0x00, 0x0, 0x00, 0x00, 0x00};
+
   public:
     //! \brief Construct a network interface with given Ethernet (network-access-layer) and IP (internet-layer) addresses
     NetworkInterface(const EthernetAddress &ethernet_address, const Address &ip_address);
