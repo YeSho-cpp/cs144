@@ -3,8 +3,11 @@
 
 #include "network_interface.hh"
 
+#include <cstdint>
 #include <optional>
 #include <queue>
+#include <tuple>
+#include <unordered_map>
 
 //! \brief A wrapper for NetworkInterface that makes the host-side
 //! interface asynchronous: instead of returning received datagrams
@@ -38,6 +41,12 @@ class AsyncNetworkInterface : public NetworkInterface {
     std::queue<InternetDatagram> &datagrams_out() { return _datagrams_out; }
 };
 
+struct Out_Stats{
+    std::optional<Address> next_hop=std::nullopt;
+    size_t interface_num=0;
+};
+
+
 //! \brief A router that has multiple network interfaces and
 //! performs longest-prefix-match routing between them.
 class Router {
@@ -48,7 +57,8 @@ class Router {
     //! as specified by the route with the longest prefix_length that matches the
     //! datagram's destination address.
     void route_one_datagram(InternetDatagram &dgram);
-
+    // 作为一个路由表存在
+    std::unordered_map<uint64_t, Out_Stats>_routTable={};
   public:
     //! Add an interface to the router
     //! \param[in] interface an already-constructed network interface
@@ -69,6 +79,13 @@ class Router {
 
     //! Route packets between the interfaces
     void route();
+
+    uint32_t to_subnetMask(uint8_t prefix_length);
+
+    uint64_t createKey(uint32_t route_prefix,uint8_t prefix_length);
+    
+    std::tuple<uint32_t, uint8_t> unpack_key(uint64_t key);
+
 };
 
 #endif  // SPONGE_LIBSPONGE_ROUTER_HH

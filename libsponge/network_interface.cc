@@ -35,12 +35,12 @@ void NetworkInterface::send_datagram(const InternetDatagram &dgram, const Addres
     const uint32_t next_hop_ip = next_hop.ipv4_numeric();
     if (_cache.find(next_hop_ip) != _cache.end()){ // 目的以太网地址已知
        EthernetFrame frame= warp_Ethernet(1,_ethernet_address,_cache[next_hop_ip].mac_addr,_ip_address.ipv4_numeric(),next_hop_ip,dgram,0);
-        _frames_out.push(frame);// 发送
+        _frames_out.emplace(frame);// 发送
     }else{ // 以太网未知要发送ARP请求
         // 先查看是否已经发送过且时间未超过
         if (_arp_queue.find(next_hop_ip)!=_arp_queue.end()&&_arp_queue[next_hop_ip].ttl<=_FLOOD_TIME) return; // 就不需要再发送了
         EthernetFrame frame=warp_Ethernet(0,_ethernet_address,ETHERNET_BROADCAST,_ip_address.ipv4_numeric(),next_hop_ip,std::nullopt,0);
-        _frames_out.push(frame);// 发送
+        _frames_out.emplace(frame);// 发送
         _arp_queue.insert({next_hop_ip, MAC_TTL{ETHERNET_BROADCAST, dgram, 0}});
     }
 
@@ -70,7 +70,7 @@ optional<InternetDatagram> NetworkInterface::recv_frame(const EthernetFrame &fra
             {
                 EthernetFrame 
             sframe=warp_Ethernet(0,_ethernet_address,message.sender_ethernet_address,_ip_address.ipv4_numeric(),message.sender_ip_address,std::nullopt,1);
-                _frames_out.push(sframe);
+                _frames_out.push(std::move(sframe));
             } else if (message.opcode == ARPMessage::OPCODE_REPLY &&
                        message.target_ip_address == _ip_address.ipv4_numeric()&&_arp_queue.find(message.sender_ip_address)!=_arp_queue.end()) { // 是ARP回复，且发送ip地址是之前广播的ipi地址
                 send_datagram(_arp_queue[message.sender_ip_address].dgram.value(),
